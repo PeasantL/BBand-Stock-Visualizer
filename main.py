@@ -31,7 +31,8 @@ timezone = pytz.timezone('Australia/Perth')
 current_time = datetime.now(timezone).strftime("%Y%m%d_%H%M%S")
 
 # Update the subject to include the date and time
-subject = f"{config['email']['subject']} - {current_time}"
+subject = f"{datetime.now().strftime('%d/%m/%Y')} - Auto Stock Report"
+
 
 def fetch_dividend_yield(ticker, years_back=5):
     # Set current date as end date and calculate start date
@@ -70,6 +71,7 @@ def fetch_and_visualize(tickers, years_back=5, ma_period=100, y_min=None):
     # Determine subplot dimensions
     nrows = 2  # Arrange plots in two columns
     ncols = 3
+    email_details = {}
     
     plt.figure(figsize=(15, 5 * nrows))  # Adjust overall figure size
 
@@ -142,6 +144,12 @@ def fetch_and_visualize(tickers, years_back=5, ma_period=100, y_min=None):
             ax.set_ylim(bottom=y_min)
 
         ax.legend()
+        
+        # Add stock details for email
+        email_details[ticker] = {
+            'closing_price': data['Close'].iloc[-1],
+            'below_lower_band': 'Under the lower band' if below_lower.iloc[-1] else 'Above the lower band'
+        }
 
     plt.tight_layout()
     
@@ -153,17 +161,20 @@ def fetch_and_visualize(tickers, years_back=5, ma_period=100, y_min=None):
     
     plt.savefig(save_path)
 
-    return save_path
+    return save_path, email_details
 
-def send_email_with_attachment(subject, body, attachment_path, sender_email, receiver_email, password):
-    # Create the email
+def send_email_with_attachment(subject, attachment_path, sender_email, receiver_email, password, email_details):
     msg = MIMEMultipart()
     msg['From'] = sender_email
     msg['To'] = receiver_email
     msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
-    
-    # Attach the file
+
+    # Prepare and attach the custom body
+    body_content = ""
+    for ticker, details in email_details.items():
+        body_content += f"<b>{ticker}</b><br>Closing Price: {details['closing_price']:.2f}<br>{details['below_lower_band']}<br><br>"
+    msg.attach(MIMEText(body_content, 'html'))
+
     with open(attachment_path, 'rb') as attachment:
         part = MIMEBase('application', 'octet-stream')
         part.set_payload(attachment.read())
@@ -171,21 +182,18 @@ def send_email_with_attachment(subject, body, attachment_path, sender_email, rec
         part.add_header('Content-Disposition', f'attachment; filename={os.path.basename(attachment_path)}')
         msg.attach(part)
 
-    # Connect to the Gmail server
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()  # Secure the connection
-        server.login(sender_email, password)  # Log in to your email account
-        text = msg.as_string()  # Convert the message to a string
-        server.sendmail(sender_email, receiver_email, text)  # Send the email
+        server.starttls()
+        server.login(sender_email, password)
+        text = msg.as_string()
+        server.sendmail(sender_email, receiver_email, text)
         print("Email sent successfully!")
     except Exception as e:
         print(f"Failed to send email: {e}")
     finally:
-        server.quit()  # Close the connection
+        server.quit()
 
-# Call the function using settings from the TOML file
-save_path = fetch_and_visualize(tickers, years_back=years_back, ma_period=ma_period, y_min=y_min)
-
-# Email the generated image
-send_email_with_attachment(subject, body, save_path, sender_email, receiver_email, password)
+# Execute functions and send email
+save_path, email_details = fetch_and_visualize(tickers, years_back=years_back, ma_period=ma_period, y_min=y_min)
+send_email_with_attachment(subject, save_path, sender_email, receiver_email, password, email_details)
