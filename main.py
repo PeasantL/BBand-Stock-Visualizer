@@ -3,6 +3,35 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import pytz
+import toml
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+import os
+
+# Load settings from the TOML file
+config = toml.load("settings.toml")
+tickers = config['tickers']['symbols']
+years_back = config['analysis']['years_back']
+y_min = config['analysis']['y_min']
+ma_period = config['analysis']['ma_period']
+
+# Email settings
+sender_email = config['email']['sender_email']
+receiver_email = config['email']['receiver_email']
+password = config['email']['password']
+body = config['email']['body']
+
+timezone = pytz.timezone('Australia/Perth')
+
+# Get current time in the specified timezone
+current_time = datetime.now(timezone).strftime("%Y%m%d_%H%M%S")
+
+# Update the subject to include the date and time
+subject = f"{config['email']['subject']} - {current_time}"
 
 def fetch_dividend_yield(ticker, years_back=5):
     # Set current date as end date and calculate start date
@@ -40,7 +69,7 @@ def fetch_dividend_yield(ticker, years_back=5):
 def fetch_and_visualize(tickers, years_back=5, ma_period=100, y_min=None):
     # Determine subplot dimensions
     nrows = 2  # Arrange plots in two columns
-    ncols = 4
+    ncols = 3
     
     plt.figure(figsize=(15, 5 * nrows))  # Adjust overall figure size
 
@@ -104,7 +133,7 @@ def fetch_and_visualize(tickers, years_back=5, ma_period=100, y_min=None):
 
         # Title and labels for subplot
         current_condition = "Below" if below_lower.iloc[-1] else "Above"
-        ax.set_title(f'{ticker} - {current_condition} Lower Band\nYoY Growth: {CAGR:.2f}%, Avg Div Yield: {average_dividend_yield:.2f}%, Total Return: {(CAGR+average_dividend_yield):.2f}%')
+        ax.set_title(f'{ticker} - {current_condition} Lower Band\nYoY Growth: {CAGR:.2f}%, Avg Div Yield: {average_dividend_yield:.2f}%')
         ax.set_xlabel('Date')
         ax.set_ylabel('Price')
 
@@ -115,8 +144,48 @@ def fetch_and_visualize(tickers, years_back=5, ma_period=100, y_min=None):
         ax.legend()
 
     plt.tight_layout()
-    plt.show()
+    
+    # Use os.path.join to create a path that works on all operating systems
+    save_path = os.path.join("stock_analysis", f"{current_time}.png")
+    
+    # Ensure the directory exists before saving
+    os.makedirs("stock_analysis", exist_ok=True)
+    
+    plt.savefig(save_path)
 
-# Example usage with multiple tickers displayed simultaneously
-tickers = ['VGS.AX','ETH-USD','BTC-USD','VDHG.AX','NDQ.AX','IOO',"CSL.AX", "WDS.AX"]  # List of example tickers
-fetch_and_visualize(tickers, years_back=5, y_min=0)
+    return save_path
+
+def send_email_with_attachment(subject, body, attachment_path, sender_email, receiver_email, password):
+    # Create the email
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+    
+    # Attach the file
+    with open(attachment_path, 'rb') as attachment:
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload(attachment.read())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', f'attachment; filename={os.path.basename(attachment_path)}')
+        msg.attach(part)
+
+    # Connect to the Gmail server
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()  # Secure the connection
+        server.login(sender_email, password)  # Log in to your email account
+        text = msg.as_string()  # Convert the message to a string
+        server.sendmail(sender_email, receiver_email, text)  # Send the email
+        print("Email sent successfully!")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+    finally:
+        server.quit()  # Close the connection
+
+# Call the function using settings from the TOML file
+save_path = fetch_and_visualize(tickers, years_back=years_back, ma_period=ma_period, y_min=y_min)
+
+# Email the generated image
+send_email_with_attachment(subject, body, save_path, sender_email, receiver_email, password)

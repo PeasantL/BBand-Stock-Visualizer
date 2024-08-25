@@ -1,0 +1,16 @@
+# settings.toml
+
+[tickers]
+symbols = ['VGS.AX', 'ETH-USD', 'BTC-USD', 'VDHG.AX', 'NDQ.AX', 'IOO']
+
+[analysis]
+years_back = 5
+y_min = 0
+ma_period = 100
+
+[email]
+sender_email = "gmail here"
+receiver_email = "gmail here"
+password = "app specific password here"
+subject = "Automated Stock Analysis Report"
+body = "Please find attached the latest stock analysis report."
