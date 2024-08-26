@@ -71,7 +71,7 @@ def fetch_and_visualize(tickers, years_back=5, y_min=None):
     return save_path, email_details
 
 
-def send_email_with_attachment(subject, attachment_path, sender_email, receiver_email, password, email_details):
+def send_email_with_attachment(subject, attachment_path, sender_email, receiver_email, password, email_details, additional_email=None):
     msg = MIMEMultipart()
     msg['From'] = sender_email
     msg['To'] = receiver_email
@@ -79,8 +79,12 @@ def send_email_with_attachment(subject, attachment_path, sender_email, receiver_
 
     # Prepare and attach the custom body
     body_content = ""
+    golden_cross_flag = False
     for ticker, details in email_details.items():
         body_content += f"<b>{ticker}</b><br>Closing Price: {details['closing_price']:.2f}<br>Golden Cross Today: {details['golden_cross_today']}<br><br>"
+        if details['golden_cross_today'] == 'Yes':
+            golden_cross_flag = True  # Set flag if any golden cross is detected today
+    
     msg.attach(MIMEText(body_content, 'html'))
 
     with open(attachment_path, 'rb') as attachment:
@@ -90,18 +94,29 @@ def send_email_with_attachment(subject, attachment_path, sender_email, receiver_
         part.add_header('Content-Disposition', f'attachment; filename={os.path.basename(attachment_path)}')
         msg.attach(part)
 
+    # Send the email to the primary recipient
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(sender_email, password)
         text = msg.as_string()
         server.sendmail(sender_email, receiver_email, text)
-        print("Email sent successfully!")
+        print("Email sent successfully to the primary recipient!")
+
+        # If a golden cross is detected, send the email to the additional recipient
+        if golden_cross_flag and additional_email:
+            msg['To'] = additional_email
+            text = msg.as_string()  # Update the text to reflect the new recipient
+            server.sendmail(sender_email, additional_email, text)
+            print("Email also sent to the additional recipient due to golden cross detection!")
+
     except Exception as e:
         print(f"Failed to send email: {e}")
     finally:
         server.quit()
 
+
 # Execute functions and send email
 save_path, email_details = fetch_and_visualize(tickers, years_back=years_back, y_min=y_min)
-send_email_with_attachment(subject, save_path, sender_email, receiver_email, password, email_details)
+additional_email = config['email'].get('additional_email')  # Assuming you add this to your TOML file
+send_email_with_attachment(subject, save_path, sender_email, receiver_email, password, email_details, additional_email)
