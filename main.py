@@ -23,7 +23,6 @@ y_min = None
 sender_email = config['email']['sender_email']
 receiver_email = config['email']['receiver_email']
 password = config['email']['password']
-body = ""
 
 timezone = pytz.timezone('Australia/Perth')
 current_time = datetime.now(timezone).strftime("%Y%m%d_%H%M%S")
