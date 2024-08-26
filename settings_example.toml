@@ -1,7 +1,7 @@
 # settings.toml
 
 [tickers]
-symbols = ['VGS.AX', 'ETH-USD', 'BTC-USD', 'VDHG.AX', 'NDQ.AX', 'IOO']
+symbols = ['VGS.AX', 'ETH-AUD', 'BTC-AUD', 'VDHG.AX', 'NDQ.AX', 'IOO.AX']
 
 [analysis]
 years_back = 5

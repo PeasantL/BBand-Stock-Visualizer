@@ -1,5 +1,11 @@
 #!/bin/bash
-VENV_DIR=".venv"
+
+# Define the absolute path to the project directory
+PROJECT_DIR="/home/peasantl/BBand-Stock-Visualizer"
+VENV_DIR="$PROJECT_DIR/.venv"
+
+# Navigate to the project directory
+cd $PROJECT_DIR
 
 # Check if .venv exists
 if [ -d "$VENV_DIR" ]; then
@@ -16,7 +22,7 @@ fi
 
 # Run main.py
 echo "Running main.py..."
-python3 main.py
+python3 $PROJECT_DIR/main.py
 
 # Deactivate the virtual environment
 deactivate
