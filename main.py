@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import pytz
@@ -6,17 +5,12 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 import os
 import toml
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
+from send_email import send_email_with_attachment
 
 # Load settings from the TOML file
 config = toml.load("settings.toml")
 tickers = config['tickers']['symbols']
 years_back = config['analysis']['years_back']
-#y_min = config['analysis']['y_min']
 y_min = None
 
 # Email settings
@@ -30,34 +24,25 @@ current_time = datetime.now(timezone).strftime("%Y%m%d_%H%M%S")
 subject = f"{datetime.now().strftime('%d/%m/%Y')} - Auto Stock Report"
 
 def fetch_dividend_yield(ticker, years_back=5):
-    # Set current date as end date and calculate start date
     end_date = datetime.now()
     start_date = end_date - timedelta(days=365 * years_back)
-    
-    # Format dates for yfinance
     end_date = end_date.strftime('%Y-%m-%d')
     start_date = start_date.strftime('%Y-%m-%d')
-    
-    # Fetch historical stock data
     stock = yf.Ticker(ticker)
     dividends = stock.dividends
     prices = stock.history(start=start_date, end=end_date)['Close']
-    # Filter dividends within the period
     dividends = dividends[(dividends.index >= start_date) & (dividends.index <= end_date)]
     
-    # Calculate dividend yield on each dividend date
     dividend_yields = []
     for date, dividend in dividends.items():
-        # Get the closing price on the day before the dividend was paid
         price = prices.loc[prices.index <= date].iloc[-1]
         yield_value = dividend / price
         dividend_yields.append(yield_value)
     
-    # Calculate the average dividend yield over the period
     if dividend_yields:
         average_yield = np.mean(dividend_yields) * 100  # Convert to percentage
     else:
-        average_yield = 0  # No dividends in this period
+        average_yield = 0
     return average_yield
 
 def fetch_and_visualize(tickers, years_back=5, y_min=None):
@@ -74,20 +59,16 @@ def fetch_and_visualize(tickers, years_back=5, y_min=None):
         golden_crosses = ((data['Short_MA'] > data['Long_MA']) & (data['Short_MA'].shift(1) <= data['Long_MA'].shift(1)))
         death_crosses = ((data['Short_MA'] < data['Long_MA']) & (data['Short_MA'].shift(1) >= data['Long_MA'].shift(1)))
 
-        # Add a linear trend line
         z = np.polyfit(range(len(data['Close'])), data['Close'], 1)
         p = np.poly1d(z)
 
-        # Calculate CAGR based on trendline values
         if len(data['Close']) > 0:
-            start_price = p(0)  # Start value on the trendline
-            end_price = p(len(data['Close']) - 1)  # End value on the trendline
+            start_price = p(0)
+            end_price = p(len(data['Close']) - 1)
             years = years_back
             CAGR = ((end_price / start_price) ** (1 / years) - 1) * 100
         
-        # Calculate average dividend yield
         average_dividend_yield = fetch_dividend_yield(ticker, years_back=years_back)
-
 
         ax = plt.subplot(nrows, ncols, i + 1)
         ax.plot(data.index, p(range(len(data['Close']))), "r--", label='Trend Line')
@@ -103,7 +84,6 @@ def fetch_and_visualize(tickers, years_back=5, y_min=None):
         if y_min is not None:
             ax.set_ylim(bottom=y_min)
 
-        # Check for a golden cross today
         today_golden_cross = 'Yes' if golden_crosses.iloc[-1] else 'No'
         email_details[ticker] = {
             'closing_price': data['Close'].iloc[-1],
@@ -117,38 +97,13 @@ def fetch_and_visualize(tickers, years_back=5, y_min=None):
     plt.savefig(save_path)
     return save_path, email_details
 
-
-def send_email_with_attachment(subject, attachment_path, sender_email, receiver_email, password, email_details):
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
-    msg['Subject'] = subject
-
-    # Prepare and attach the custom body
+def format_email_body(email_details):
     body_content = ""
     for ticker, details in email_details.items():
         body_content += f"<b>{ticker}</b><br>Closing Price: {details['closing_price']:.2f}<br>Golden Cross Today: {details['golden_cross_today']}<br><br>"
-    msg.attach(MIMEText(body_content, 'html'))
-
-    with open(attachment_path, 'rb') as attachment:
-        part = MIMEBase('application', 'octet-stream')
-        part.set_payload(attachment.read())
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', f'attachment; filename={os.path.basename(attachment_path)}')
-        msg.attach(part)
-
-    try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(sender_email, password)
-        text = msg.as_string()
-        server.sendmail(sender_email, receiver_email, text)
-        print("Email sent successfully!")
-    except Exception as e:
-        print(f"Failed to send email: {e}")
-    finally:
-        server.quit()
+    return body_content
 
 # Execute functions and send email
 save_path, email_details = fetch_and_visualize(tickers, years_back=years_back, y_min=y_min)
-send_email_with_attachment(subject, save_path, sender_email, receiver_email, password, email_details)
+email_body = format_email_body(email_details)
+send_email_with_attachment(subject, sender_email, receiver_email, password, email_body, attachment_path=save_path)
