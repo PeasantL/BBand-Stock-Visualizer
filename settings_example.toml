@@ -13,3 +13,6 @@ receiver_email = "gmail here"
 additional_email = "additional@example.com"
 password = "app specific password here"
 subject = "Automated Stock Analysis Report"
+
+[github]
+auth_token = "github auth here"

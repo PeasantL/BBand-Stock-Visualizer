@@ -22,7 +22,8 @@ fi
 
 # Run main.py
 echo "Running main.py..."
-python3 $PROJECT_DIR/main.py
+python3 $PROJECT_DIR/stock.py
+python3 $PROJECT_DIR/updates.py
 
 # Deactivate the virtual environment
 deactivate
