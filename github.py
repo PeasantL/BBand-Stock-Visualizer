@@ -65,7 +65,7 @@ def get_latest_release_or_commit(repo):
 # Function to collect status updates as a string
 def get_status_updates():
     status_updates = "<tr><td class='content'>"
-    status_updates += f"<h3>Github Update</h3>"
+    status_updates += f"<h3>Github Repo Updates</h3>"
     for repo in repositories:
         item_type, item_id, item_name = get_latest_release_or_commit(repo)
         if item_type != 'error' and item_id:

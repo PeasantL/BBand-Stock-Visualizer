@@ -3,6 +3,7 @@ from github import get_status_updates
 import toml
 from datetime import datetime
 from send_email import send_email_with_attachment
+from steam_wishlist import get_tracked_games_html
 
 # Load settings from the TOML file
 config = toml.load("settings.toml")
@@ -85,7 +86,7 @@ def create_email_content():
     return email_body
 
 def modules_run():
-    return get_status_updates() + "<tr><td><hr></td></tr>" + get_ebay_results()
+    return get_status_updates() + "<tr><td><hr></td></tr>" + get_ebay_results() + "<tr><td><hr></td></tr>" + get_tracked_games_html()
 
 email_body = create_email_content()
 send_email_with_attachment(subject, sender_email, receiver_email, password, email_body)
