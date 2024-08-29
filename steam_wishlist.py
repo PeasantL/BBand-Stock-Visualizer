@@ -9,7 +9,12 @@ def fetch_steam_wishlist():
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    games = [game.text for game in soup.find_all('span', class_='title')[:10]]
+    games = []
+    for game in soup.find_all('a', class_='search_result_row')[:10]:
+        title = game.find('span', class_='title').text
+        link = game['href']
+        games.append({'title': title, 'link': link})
+    
     return games
 
 def load_previous_list(file_path):
@@ -24,7 +29,8 @@ def save_current_list(games, file_path):
         json.dump(games, file, indent=4)
 
 def track_changes(current_games, previous_games):
-    return [(game, game not in previous_games) for game in current_games]
+    previous_titles = [game['title'] for game in previous_games]
+    return [(game, game['title'] not in previous_titles) for game in current_games]
 
 def get_tracked_games_html():
     json_file_path = 'steam_games.json'
@@ -38,10 +44,7 @@ def get_tracked_games_html():
     results_output += "<h3>Top Steam Wishlist Games</h3>"
     for i, (game, is_new) in enumerate(tracked_games[:10]):  # Limiting to top 10 games for display
         new_mark = " (New!)" if is_new else ""
-        output = f"{i + 1}. {game}{new_mark}<br><br>"
+        output = f"{i + 1}. <a href='{game['link']}'>{game['title']}</a>{new_mark}<br><br>"
         results_output += output
     results_output += "</td></tr>"
     return results_output
-
-# Example of how you might use this function in another part of your application
-# print(get_tracked_games_html())

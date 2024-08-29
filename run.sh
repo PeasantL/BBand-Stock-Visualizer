@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the absolute path to the project directory
-PROJECT_DIR="/home/peasantl/BBand-Stock-Visualizer"
+PROJECT_DIR="/home/peasantl/Info-Mail-Bot"
 VENV_DIR="$PROJECT_DIR/.venv"
 
 # Navigate to the project directory
