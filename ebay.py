@@ -99,13 +99,14 @@ def get_ebay_results():
     ebay_results = scrape_ebay(search_term)
     preprocessed_results = preprocess_results(ebay_results)
 
-    results_output = ""
-    for idx, result in enumerate(preprocessed_results[:5]):
+    results_output = "<tr><td class='content'>"
+    results_output += f"<h3>Ebay Search: {search_term}</h3>"
+    for result in preprocessed_results[:5]:
         output = (
-            f"<strong>Item {idx + 1}:</strong><br>"
-            f"Title: {result['title']}<br>"
+            f"<strong>{result['title']}</strong><br>"
             f"Price: {result['price']}<br>"
-            f"Link: <a href='{result['link']}'>{result['link']}</a><br><br>"
+            f"Link: <a href='{result['link']}'>{'Click Here'}</a><br><br>"
         )
         results_output += output
+    results_output += "</td></tr>"
     return results_output

@@ -64,23 +64,26 @@ def get_latest_release_or_commit(repo):
 
 # Function to collect status updates as a string
 def get_status_updates():
-    status_updates = []
+    status_updates = "<tr><td class='content'>"
+    status_updates += f"<h3>Github Update</h3>"
     for repo in repositories:
         item_type, item_id, item_name = get_latest_release_or_commit(repo)
         if item_type != 'error' and item_id:
             if repo not in tracking_data or tracking_data[repo] != item_id:
                 if item_type == 'release':
-                    status_updates.append(f"<strong>{repo}</strong><br>New release<br>Version: {item_name}<br><br>")
+                    status_updates += f"<strong>{repo}</strong><br>New release<br>Version: {item_name}<br><br>"
                 else:
-                    status_updates.append(f"<strong>{repo}</strong><br>New commit<br>Message: {item_name}<br><br>")
+                    status_updates += f"<strong>{repo}</strong><br>New commit<br>Message: {item_name}<br><br>"
                 tracking_data[repo] = item_id
             else:
                 if item_type == 'release':
-                    status_updates.append(f"<strong>{repo}</strong><br>No new release<br>Current Version: {item_name}<br><br>")
+                    status_updates += f"<strong>{repo}</strong><br>No new release<br>Current Version: {item_name}<br><br>"
                 else:
-                    status_updates.append(f"<strong>{repo}</strong><br>No new commit<br>Current Message: {item_name}<br><br>")
+                    status_updates += f"<strong>{repo}</strong><br>No new commit<br>Current Message: {item_name}<br><br>"
         else:
-            status_updates.append(f"<strong>{repo}</strong><br>No release or commit information available.<br><br>")
+            status_updates += f"<strong>{repo}</strong><br>No release or commit information available.<br><br>"
+    
+    status_updates += "</td></tr>"
 
     # Save the updated tracking data to file
     with open(tracking_file, 'w') as file:
