@@ -103,9 +103,8 @@ def get_ebay_results():
     results_output += f"<h3>Ebay Search: {search_term}</h3>"
     for result in preprocessed_results[:5]:
         output = (
-            f"<strong>{result['title']}</strong><br>"
-            f"Price: {result['price']}<br>"
-            f"Link: <a href='{result['link']}'>{'Click Here'}</a><br><br>"
+            f"<a href='{result['link']}'>{result['title']}</a><br>"
+            f"Price: {result['price']}<br><br>"
         )
         results_output += output
     results_output += "</td></tr>"

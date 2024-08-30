@@ -68,20 +68,21 @@ def get_status_updates():
     status_updates += f"<h3>Github Repo Updates</h3>"
     for repo in repositories:
         item_type, item_id, item_name = get_latest_release_or_commit(repo)
+        repo_link = f"https://github.com/{repo}"  # Creating link to the repository
         if item_type != 'error' and item_id:
             if repo not in tracking_data or tracking_data[repo] != item_id:
                 if item_type == 'release':
-                    status_updates += f"<strong>{repo}</strong><br>New release<br>Version: {item_name}<br><br>"
+                    status_updates += f"<a href='{repo_link}'>{repo}</a><br>New release<br>Version: {item_name}<br><br>"
                 else:
-                    status_updates += f"<strong>{repo}</strong><br>New commit<br>Message: {item_name}<br><br>"
+                    status_updates += f"<a href='{repo_link}'>{repo}</a><br>New commit<br>Message: {item_name}<br><br>"
                 tracking_data[repo] = item_id
             else:
                 if item_type == 'release':
-                    status_updates += f"<strong>{repo}</strong><br>No new release<br>Current Version: {item_name}<br><br>"
+                    status_updates += f"<a href='{repo_link}'>{repo}</a><br>No new release<br>Current Version: {item_name}<br><br>"
                 else:
-                    status_updates += f"<strong>{repo}</strong><br>No new commit<br>Current Message: {item_name}<br><br>"
+                    status_updates += f"<a href='{repo_link}'>{repo}</a><br>No new commit<br>Current Message: {item_name}<br><br>"
         else:
-            status_updates += f"<strong>{repo}</strong><br>No release or commit information available.<br><br>"
+            status_updates += f"<a href='{repo_link}'>{repo}</a><br>No release or commit information available.<br><br>"
     
     status_updates += "</td></tr>"
 
