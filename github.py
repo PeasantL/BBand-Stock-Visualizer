@@ -7,7 +7,8 @@ repositories = [
     "theroyallab/tabbyAPI",
     "SillyTavern/SillyTavern",
     "LostRuins/koboldcpp",
-    "oobabooga/text-generation-webui"
+    "oobabooga/text-generation-webui",
+    "comfyanonymous/ComfyUI"
 ]
 
 config = toml.load("settings.toml")
@@ -25,7 +26,7 @@ headers = {
 base_url = 'https://api.github.com/repos/'
 
 # File to store the last known releases and commits
-tracking_file = 'tracking_data.json'
+tracking_file = 'github.json'
 
 # Load the last known releases and commits from file
 try:

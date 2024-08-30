@@ -71,7 +71,7 @@ def track_changes(current_games, previous_games):
     return [(game, game['title'] not in previous_titles) for game in current_games]
 
 def get_tracked_games_html():
-    json_file_path = 'steam_games.json'
+    json_file_path = 'steam_wishlist.json'
     previous_games = load_previous_list(json_file_path)
     current_games = fetch_steam_wishlist()
     tracked_games = track_changes(current_games, previous_games)

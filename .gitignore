@@ -1,5 +1,4 @@
 .venv
 settings.toml
 __pycache__
-tracking_data.json
-steam_games.json
+*.json

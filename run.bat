@@ -17,7 +17,7 @@ if exist %VENV_DIR% (
 REM Run main.py
 echo Running main.py...
 python stock.py
-python updates.py
+python status_updates.py
 
 REM Deactivate the virtual environment
 deactivate
