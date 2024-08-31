@@ -21,7 +21,7 @@ def scrape_huggingface_models():
         
         # Initialize data storage for the current run
         current_data = {}
-        html_output = "<tr><td class='content'><h3>Trending Hugging Face Models</h3>"
+        html_output = "<tr><td class='content'><h3>Hugging Face Models: 12b</h3>"
         
         # Index to track each model entry
         index = 1
