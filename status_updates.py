@@ -6,6 +6,7 @@ from send_email import send_email_with_attachment
 from steam_wishlist import get_tracked_games_html
 from tcbscans import get_newest_chapter_info
 from fuelwatch import generate_fuel_content
+from huggingface import scrape_huggingface_models
 
 # Load settings from the TOML file
 config = toml.load("settings.toml")
@@ -93,6 +94,7 @@ def modules_run():
         generate_fuel_content,
         get_status_updates,
         get_ebay_results,
+        scrape_huggingface_models,
         get_tracked_games_html,
         get_newest_chapter_info
     ]
