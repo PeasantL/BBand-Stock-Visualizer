@@ -9,7 +9,7 @@ y_min = 0
 
 [email]
 sender_email = "gmail here"
-receiver_email = "gmail here"
+receiver_email = "primary@example.com"
 additional_email = "additional@example.com"
 password = "app specific password here"
 subject = "Automated Stock Analysis Report"

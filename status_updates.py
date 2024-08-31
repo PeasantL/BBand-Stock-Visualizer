@@ -5,6 +5,7 @@ from datetime import datetime
 from send_email import send_email_with_attachment
 from steam_wishlist import get_tracked_games_html
 from tcbscans import get_newest_chapter_info
+from fuelwatch import generate_fuel_content
 
 # Load settings from the TOML file
 config = toml.load("settings.toml")
@@ -89,6 +90,7 @@ def create_email_content():
 def modules_run():
     # List of functions
     functions = [
+        generate_fuel_content,
         get_status_updates,
         get_ebay_results,
         get_tracked_games_html,
