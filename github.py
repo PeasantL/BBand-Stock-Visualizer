@@ -1,6 +1,6 @@
 import requests
-import json
 import toml
+from track_data import open_json, save_json
 
 # List of repositories to track
 repositories = [
@@ -27,13 +27,7 @@ base_url = 'https://api.github.com/repos/'
 
 # File to store the last known releases and commits
 tracking_file = 'github.json'
-
-# Load the last known releases and commits from file
-try:
-    with open(tracking_file, 'r') as file:
-        tracking_data = json.load(file)
-except FileNotFoundError:
-    tracking_data = {}
+tracking_data = open_json(tracking_file)
 
 # Function to get the latest commit from the default branch
 def get_latest_commit(repo):
@@ -87,8 +81,6 @@ def get_status_updates():
     
     status_updates += "</td></tr>"
 
-    # Save the updated tracking data to file
-    with open(tracking_file, 'w') as file:
-        json.dump(tracking_data, file)
+    save_json(tracking_file, tracking_data)
 
     return ''.join(status_updates)

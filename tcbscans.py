@@ -1,19 +1,11 @@
 import requests
-import json
 from bs4 import BeautifulSoup
-
-def save_chapter_info(info):
-    with open('tcbscans.json', 'w') as file:
-        json.dump(info, file)
-
-def load_chapter_info():
-    try:
-        with open('tcbscans.json', 'r') as file:
-            return json.load(file)
-    except FileNotFoundError:
-        return None
+from track_data import open_json, save_json
 
 def get_newest_chapter_info():
+    
+    tracking_file = 'tcbscans.json'
+    
     # URL of the manga page
     url = 'https://tcbscans.me/mangas/5/one-piece'
     
@@ -41,14 +33,14 @@ def get_newest_chapter_info():
             'url': chapter_url
         }
         
-        saved_info = load_chapter_info()
+        saved_info = open_json(tracking_file)
         
         # Compare with saved chapter info
         if saved_info and saved_info['title'] == chapter_title:
             header = '<h3>Latest Chapter</h3>'
         else:
             header = '<h3>Latest Chapter (New!)</h3>'
-            save_chapter_info(current_info)
+            save_json(tracking_file, current_info)
         
         # Format the result as an HTML string with <tr><td class='content'>
         result = f'<tr><td class="content">{header}<a href="{chapter_url}">{chapter_title}</a><br>{chapter_subtitle}</td></tr>'
