@@ -45,10 +45,13 @@ def scrape_huggingface_models():
                 # Assume the first SVG is 'type' and discard it
                 downloads = svg_texts[1]
                 likes = svg_texts[2]
-            else:
+            elif len(svg_texts) == 2:
                 # No 'type' present, so use the first two directly
                 downloads = svg_texts[0]
                 likes = svg_texts[1]
+            else:
+                downloads = "Unknown"
+                likes = "Unknown"
             
             # Check if this model is new compared to the previous data
             is_new = title not in tracking_data
@@ -82,3 +85,5 @@ def scrape_huggingface_models():
 
     else:
         return f"<p>Failed to retrieve content. Status code: {response.status_code}</p>"
+
+#print(scrape_huggingface_models())
